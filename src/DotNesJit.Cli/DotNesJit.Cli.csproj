@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -8,11 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\NESDecompiler\NESDecompiler.Core\NESDecompiler.Core.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta7.25380.108" />
+        <ProjectReference Include="..\DotNesJit.Core\DotNesJit.Core.csproj"/>
+        <ProjectReference Include="..\DotNesJit.JIT\DotNesJit.JIT.csproj"/>
+        <ProjectReference Include="..\DotNesJit.Hardware\DotNesJit.Hardware.csproj"/>
+        <ProjectReference Include="..\DotNesJit.Emulation\DotNesJit.Emulation.csproj"/>
     </ItemGroup>
 
 </Project>
