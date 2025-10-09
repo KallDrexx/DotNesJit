@@ -27,10 +27,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0x42;
@@ -55,10 +53,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0x00;
@@ -83,10 +79,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0x80;
@@ -111,10 +105,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0xFF;
@@ -139,10 +131,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0x7F;
@@ -178,10 +168,8 @@ public class TxaTests
             Bytes = [0x8A],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.XRegister = 0x42;

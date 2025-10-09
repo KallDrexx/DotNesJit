@@ -28,10 +28,8 @@ public class PhpTests
             Bytes = [0x08],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
 
@@ -76,10 +74,8 @@ public class PhpTests
             Bytes = [0x08],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
 
@@ -121,10 +117,8 @@ public class PhpTests
             Bytes = [0x08],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
 
@@ -166,10 +160,8 @@ public class PhpTests
             Bytes = [0x08],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x42;
@@ -192,10 +184,8 @@ public class PhpTests
             Bytes = [0x08],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
 

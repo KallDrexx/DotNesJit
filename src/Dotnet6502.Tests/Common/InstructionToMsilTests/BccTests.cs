@@ -34,7 +34,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Add setup and target instructions around the branch
         var allInstructions = new List<Ir6502.Instruction>
@@ -81,7 +81,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Add setup and target instructions around the branch
         var allInstructions = new List<Ir6502.Instruction>
@@ -128,7 +128,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Add setup for a loop-like scenario
         var allInstructions = new List<Ir6502.Instruction>
@@ -189,7 +189,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -243,7 +243,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -291,7 +291,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -336,7 +336,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -396,7 +396,7 @@ public class BccTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Test case 1: After operation that sets carry
         {

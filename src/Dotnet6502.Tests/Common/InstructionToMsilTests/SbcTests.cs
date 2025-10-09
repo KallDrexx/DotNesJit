@@ -35,10 +35,8 @@ public class SbcTests
             Bytes = [0xE9, 0x05],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x10;
@@ -62,10 +60,8 @@ public class SbcTests
             Bytes = [0xE9, 0x05],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x10;
@@ -89,10 +85,8 @@ public class SbcTests
             Bytes = [0xE9, 0x05],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x05;
@@ -116,10 +110,8 @@ public class SbcTests
             Bytes = [0xE9, 0x01],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x00;
@@ -143,10 +135,8 @@ public class SbcTests
             Bytes = [0xE9, 0x20],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x10;
@@ -170,10 +160,8 @@ public class SbcTests
             Bytes = [0xE9, 0x80], // -128 in signed
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x7F; // +127 in signed
@@ -197,10 +185,8 @@ public class SbcTests
             Bytes = [0xE9, 0x01], // +1 in signed
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x80; // -128 in signed
@@ -224,10 +210,8 @@ public class SbcTests
             Bytes = [0xE9, 0x10], // +16 in signed
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x50; // +80 in signed
@@ -251,10 +235,8 @@ public class SbcTests
             Bytes = [0xE9, 0x90], // -112 in signed
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0xA0; // -96 in signed
@@ -278,10 +260,8 @@ public class SbcTests
             Bytes = [0xE9, 0x10],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x20;
@@ -306,10 +286,8 @@ public class SbcTests
             Bytes = [0xE5, 0x10],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x20;
@@ -334,10 +312,8 @@ public class SbcTests
             Bytes = [0xE5, 0x20],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x05;
@@ -363,10 +339,8 @@ public class SbcTests
             Bytes = [0xF5, 0x30],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x50;
@@ -392,10 +366,8 @@ public class SbcTests
             Bytes = [0xF5, 0xFF],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x10;
@@ -423,10 +395,8 @@ public class SbcTests
             Bytes = [0xED, 0x00, 0x30],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x40;
@@ -451,10 +421,8 @@ public class SbcTests
             Bytes = [0xED, 0x34, 0x12],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x80; // -128 in signed
@@ -480,10 +448,8 @@ public class SbcTests
             Bytes = [0xFD, 0x00, 0x20],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x30;
@@ -510,10 +476,8 @@ public class SbcTests
             Bytes = [0xF9, 0x00, 0x40],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x25;
@@ -539,10 +503,8 @@ public class SbcTests
             Bytes = [0xF9, 0xFF, 0x4F],
         };
 
-        var context = new InstructionConverter.Context(
-            new Dictionary<ushort, string>());
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, nesIrInstructions);
         jit.TestHal.ARegister = 0x01;

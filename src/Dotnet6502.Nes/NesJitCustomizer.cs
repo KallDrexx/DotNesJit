@@ -30,7 +30,7 @@ public class NesJitCustomizer : IJitCustomizer
             }
 
             updatedInstructions.Add(new CallDebugHook(instruction.OriginalInstruction.ToString()));
-            updatedInstructions.Add(new IncrementCycleCount(instruction.OriginalInstruction.Info.Cycles));
+            updatedInstructions.Add(new IncrementCycleCount(instruction.OriginalInstruction.CycleCount));
             updatedInstructions.AddRange(instruction.Ir6502Instructions.Skip(skipCount));
 
             var updatedInstruction = instruction with

@@ -181,7 +181,7 @@ public class JsrTests
         };
         var context = new InstructionConverter.Context(labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -236,7 +236,7 @@ public class JsrTests
         };
 
         var context = new InstructionConverter.Context(new Dictionary<ushort, string>());
-        var irInstructions = InstructionConverter.Convert(instruction, context);
+        var irInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var jit = new TestJitCompiler();
         jit.AddMethod(0x1234, irInstructions);

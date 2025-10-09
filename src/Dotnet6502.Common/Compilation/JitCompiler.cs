@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using Dotnet6502.Common.Decompilation;
 using Dotnet6502.Common.Hardware;
 using NESDecompiler.Core.Decompilation;
 using NESDecompiler.Core.Disassembly;
@@ -14,16 +15,14 @@ public class JitCompiler : IJitCompiler
     public static readonly OpCode LoadJitCompilerArg = OpCodes.Ldarg_0;
     public static readonly OpCode LoadHalArg = OpCodes.Ldarg_1;
 
-    private readonly Decompiler _decompiler;
     private readonly Base6502Hal _hal;
     private readonly IJitCustomizer? _jitCustomizer;
     private readonly IMemoryMap _memoryMap;
     private readonly Dictionary<ushort, ExecutableMethod> _compiledMethods = new();
 
-    public JitCompiler(Decompiler decompiler, Base6502Hal hal, IJitCustomizer? jitCustomizer, IMemoryMap memoryMap)
+    public JitCompiler(Base6502Hal hal, IJitCustomizer? jitCustomizer, IMemoryMap memoryMap)
     {
         _hal = hal;
-        _decompiler = decompiler;
         _jitCustomizer = jitCustomizer;
         _memoryMap = memoryMap;
     }
@@ -54,30 +53,8 @@ public class JitCompiler : IJitCompiler
 
     private IReadOnlyList<ConvertedInstruction> GetIrInstructions(ushort address)
     {
-        var region = _memoryMap.GetCodeRegions()
-            .Where(x => x.BaseAddress <= address)
-            .Where(x => x.BaseAddress + x.Bytes.Length > address)
-            .FirstOrDefault();
-
-        if (region == null)
-        {
-            var message = $"No known code region contains the address 0x{address:X4}";
-            throw new InvalidOperationException(message);
-        }
-
-        var disassembler = new Disassembler(region.BaseAddress, region.Bytes);
-        disassembler.AddEntyPoint(address);
-        disassembler.Disassemble();
-
-        // Rom info only needed for string functions, which we don't use
-        var decompiler = new Decompiler(_decompiler.ROMInfo, disassembler);
-        decompiler.Decompile();
-
-        if (!decompiler.Functions.TryGetValue(address, out var function))
-        {
-            var message = $"Address 0x{address:X4} did not contain a decompilable function";
-            throw new InvalidOperationException(message);
-        }
+        var codeRegions = _memoryMap.GetCodeRegions();
+        var function = FunctionDecompiler.Decompile(address, codeRegions);
 
         if (function.Instructions.Count == 0)
         {
@@ -85,20 +62,11 @@ public class JitCompiler : IJitCompiler
             throw new InvalidOperationException(message);
         }
 
-        var disassembledInstructions = disassembler.Instructions
-            .Where(x => function.Instructions.Contains(x.CPUAddress))
-            .OrderBy(x => x.CPUAddress)
-            .ToArray();
-
-        var preInstructions = disassembledInstructions.Where(x => x.CPUAddress < address);
-        var postInstructions = disassembledInstructions.Where(x => x.CPUAddress >= address);
-        var orderedInstructions = postInstructions.Concat(preInstructions).ToArray();
-
-        var instructionConverterContext = new InstructionConverter.Context(disassembler.Labels);
+        var orderedInstructions = function.GetOrderedInstructions();
 
         // Convert each 6502 instruction into one or more IR instructions
         IReadOnlyList<ConvertedInstruction> convertedInstructions = orderedInstructions
-            .Select(x => new ConvertedInstruction(x, InstructionConverter.Convert(x, instructionConverterContext)))
+            .Select(x => new ConvertedInstruction(x, InstructionConverter.Convert(x, function.InternalJumpTargets)))
             .ToArray();
 
         // Mutate the instructions based on the JIT customizations being requested

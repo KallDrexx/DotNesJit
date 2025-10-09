@@ -1,5 +1,5 @@
+using Dotnet6502.Common.Decompilation;
 using NESDecompiler.Core.CPU;
-using NESDecompiler.Core.Disassembly;
 
 namespace Dotnet6502.Common.Compilation;
 
@@ -8,33 +8,31 @@ namespace Dotnet6502.Common.Compilation;
 /// </summary>
 public static class InstructionConverter
 {
-    public record Context(IReadOnlyDictionary<ushort, string> Labels);
-
     public static IReadOnlyList<Ir6502.Instruction> Convert(
-        DisassembledInstruction instruction,
-        Context context)
+        RawInstruction instruction,
+        IReadOnlySet<ushort> knownJumpTargets)
     {
         var results = new List<Ir6502.Instruction>();
-        if (instruction.Label != null)
+        if (knownJumpTargets.Contains(instruction.Address))
         {
-            results.Add(new Ir6502.Label(new Ir6502.Identifier(instruction.Label)));
+            results.Add(new Ir6502.Label(new Ir6502.Identifier(LabelForAddress(instruction.Address))));
         }
 
-        switch (instruction.Info.Mnemonic)
+        switch (instruction.Mnemonic)
         {
             case "ADC": results.AddRange(ConvertAdc(instruction)); break;
             case "AND": results.AddRange(ConvertAnd(instruction)); break;
             case "ASL": results.AddRange(ConvertAsl(instruction)); break;
-            case "BCC": results.AddRange(ConvertBcc(instruction, context)); break;
-            case "BCS": results.AddRange(ConvertBcs(instruction, context)); break;
-            case "BEQ": results.AddRange(ConvertBeq(instruction, context)); break;
+            case "BCC": results.AddRange(ConvertBcc(instruction, knownJumpTargets)); break;
+            case "BCS": results.AddRange(ConvertBcs(instruction, knownJumpTargets)); break;
+            case "BEQ": results.AddRange(ConvertBeq(instruction, knownJumpTargets)); break;
             case "BIT": results.AddRange(ConvertBit(instruction)); break;
-            case "BMI": results.AddRange(ConvertBmi(instruction, context)); break;
-            case "BNE": results.AddRange(ConvertBne(instruction, context)); break;
-            case "BPL": results.AddRange(ConvertBpl(instruction, context)); break;
+            case "BMI": results.AddRange(ConvertBmi(instruction, knownJumpTargets)); break;
+            case "BNE": results.AddRange(ConvertBne(instruction, knownJumpTargets)); break;
+            case "BPL": results.AddRange(ConvertBpl(instruction, knownJumpTargets)); break;
             case "BRK": results.AddRange(ConvertBrk()); break;
-            case "BVC": results.AddRange(ConvertBvc(instruction, context)); break;
-            case "BVS": results.AddRange(ConvertBvs(instruction, context)); break;
+            case "BVC": results.AddRange(ConvertBvc(instruction, knownJumpTargets)); break;
+            case "BVS": results.AddRange(ConvertBvs(instruction, knownJumpTargets)); break;
             case "CLC": results.AddRange(ConvertClc()); break;
             case "CLD": results.AddRange(ConvertCld()); break;
             case "CLI": results.AddRange(ConvertCli()); break;
@@ -49,7 +47,7 @@ public static class InstructionConverter
             case "INC": results.AddRange(ConvertInc(instruction)); break;
             case "INX": results.AddRange(ConvertInx()); break;
             case "INY": results.AddRange(ConvertIny()); break;
-            case "JMP": results.AddRange(ConvertJmp(instruction, context)); break;
+            case "JMP": results.AddRange(ConvertJmp(instruction, knownJumpTargets)); break;
             case "JSR": results.AddRange(ConvertJsr(instruction)); break;
             case "LDA": results.AddRange(ConvertLda(instruction)); break;
             case "LDX": results.AddRange(ConvertLdx(instruction)); break;
@@ -80,7 +78,7 @@ public static class InstructionConverter
             case "TYA": results.AddRange(ConvertTya()); break;
 
             default:
-                throw new NotSupportedException(instruction.Info.Mnemonic);
+                throw new NotSupportedException(instruction.Mnemonic);
         }
 
         return results;
@@ -89,7 +87,7 @@ public static class InstructionConverter
     /// <summary>
     /// Add with carry
     /// </summary>
-    private static Ir6502.Instruction[] ConvertAdc(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertAdc(RawInstruction instruction)
     {
         // NOTE: This does not support decimal flag logic
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
@@ -177,7 +175,7 @@ public static class InstructionConverter
     /// <summary>
     /// Bitwise AND
     /// </summary>
-    private static Ir6502.Instruction[] ConvertAnd(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertAnd(RawInstruction instruction)
     {
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
         var operand = ParseAddress(instruction);
@@ -193,7 +191,7 @@ public static class InstructionConverter
     /// <summary>
     /// Arithmetic Shift Left
     /// </summary>
-    private static Ir6502.Instruction[] ConvertAsl(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertAsl(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var tempVariable = new Ir6502.Variable(0);
@@ -233,9 +231,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if carry clear
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBcc(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBcc(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfZero(new Ir6502.Flag(Ir6502.FlagName.Carry), target);
 
         return [jump];
@@ -244,9 +242,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if carry set
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBcs(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBcs(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfNotZero(new Ir6502.Flag(Ir6502.FlagName.Carry), target);
 
         return [jump];
@@ -255,9 +253,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if equal
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBeq(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBeq(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfNotZero(new Ir6502.Flag(Ir6502.FlagName.Zero), target);
 
         return [jump];
@@ -266,7 +264,7 @@ public static class InstructionConverter
     /// <summary>
     /// Bit test
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBit(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertBit(RawInstruction instruction)
     {
         var tempVariable = new Ir6502.Variable(0);
         var overflowTemp = new Ir6502.Variable(1);
@@ -305,9 +303,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if minus
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBmi(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBmi(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfNotZero(new Ir6502.Flag(Ir6502.FlagName.Negative), target);
 
         return [jump];
@@ -316,9 +314,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if not equal
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBne(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBne(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfZero(new Ir6502.Flag(Ir6502.FlagName.Zero), target);
 
         return [jump];
@@ -327,9 +325,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if plus
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBpl(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBpl(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfZero(new Ir6502.Flag(Ir6502.FlagName.Negative), target);
 
         return [jump];
@@ -357,9 +355,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if overflow clear
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBvc(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBvc(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfZero(new Ir6502.Flag(Ir6502.FlagName.Overflow), target);
 
         return [jump];
@@ -368,9 +366,9 @@ public static class InstructionConverter
     /// <summary>
     /// Branch if overflow set
     /// </summary>
-    private static Ir6502.Instruction[] ConvertBvs(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertBvs(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        var target = GetTargetLabel(instruction, context);
+        var target = GetTargetLabel(instruction, jumpTargets);
         var jump = new Ir6502.JumpIfNotZero(new Ir6502.Flag(Ir6502.FlagName.Overflow), target);
 
         return [jump];
@@ -419,7 +417,7 @@ public static class InstructionConverter
     /// <summary>
     /// Compare A
     /// </summary>
-    private static Ir6502.Instruction[] ConvertCmp(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertCmp(RawInstruction instruction)
     {
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
         var operand = ParseAddress(instruction);
@@ -448,7 +446,7 @@ public static class InstructionConverter
     /// <summary>
     /// Compare X
     /// </summary>
-    private static Ir6502.Instruction[] ConvertCpx(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertCpx(RawInstruction instruction)
     {
         var xIndex = new Ir6502.Register(Ir6502.RegisterName.XIndex);
         var operand = ParseAddress(instruction);
@@ -477,7 +475,7 @@ public static class InstructionConverter
     /// <summary>
     /// Compare Y
     /// </summary>
-    private static Ir6502.Instruction[] ConvertCpy(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertCpy(RawInstruction instruction)
     {
         var yIndex = new Ir6502.Register(Ir6502.RegisterName.YIndex);
         var operand = ParseAddress(instruction);
@@ -506,7 +504,7 @@ public static class InstructionConverter
     /// <summary>
     /// Decrement memory
     /// </summary>
-    private static Ir6502.Instruction[] ConvertDec(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertDec(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var variable = new Ir6502.Variable(0);
@@ -569,7 +567,7 @@ public static class InstructionConverter
     /// <summary>
     /// Bitwise Exclusive OR
     /// </summary>
-    private static Ir6502.Instruction[] ConvertEor(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertEor(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
@@ -585,7 +583,7 @@ public static class InstructionConverter
     /// <summary>
     /// Increment memory
     /// </summary>
-    private static Ir6502.Instruction[] ConvertInc(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertInc(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var variable = new Ir6502.Variable(0);
@@ -632,16 +630,16 @@ public static class InstructionConverter
     /// <summary>
     /// Jump
     /// </summary>
-    private static Ir6502.Instruction[] ConvertJmp(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Instruction[] ConvertJmp(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
         if (instruction.TargetAddress == null)
         {
-            var message = $"{instruction.Info.Mnemonic} at address 0x{instruction.CPUAddress:X4} is a jump without " +
+            var message = $"{instruction.Mnemonic} at address 0x{instruction.Address:X4} is a jump without " +
                           $"a corresponding target address";
             throw new InvalidOperationException(message);
         }
 
-        var isIndirectlyAddressed = instruction.Info.AddressingMode is AddressingMode.Indirect;
+        var isIndirectlyAddressed = instruction.AddressingMode is AddressingMode.Indirect;
         if (isIndirectlyAddressed)
         {
             return
@@ -653,9 +651,9 @@ public static class InstructionConverter
 
         // For non-indirect references, we've already mapped out the call site during decompilation
         // so we should be able to just jump to it.
-        if (context.Labels.TryGetValue(instruction.TargetAddress.Value, out var label))
+        if (jumpTargets.Contains(instruction.TargetAddress.Value))
         {
-            var jump = new Ir6502.Jump(new Ir6502.Identifier(label));
+            var jump = new Ir6502.Jump(new Ir6502.Identifier(LabelForAddress(instruction.TargetAddress.Value)));
             return [jump];
         }
 
@@ -665,7 +663,7 @@ public static class InstructionConverter
     /// <summary>
     /// Jump to subroutine
     /// </summary>
-    private static Ir6502.Instruction[] ConvertJsr(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertJsr(RawInstruction instruction)
     {
         if (!instruction.TargetAddress.HasValue)
         {
@@ -682,7 +680,7 @@ public static class InstructionConverter
         // function we call returns pop the stack. If the address is different than we expect, then we need to
         // perform a new `callFunction` call into that address and repeat until we have the expected location.
 
-        var pcValue = instruction.CPUAddress + 2; // JSR pushes PC + 2 to the stack
+        var pcValue = instruction.Address + 2; // JSR pushes PC + 2 to the stack
         var currentAddressHighBit = new Ir6502.Constant((byte)(pcValue >> 8));
         var currentAddressLowBit = new Ir6502.Constant((byte)(pcValue & 0x00FF));
         var lowByteVariable = new Ir6502.Variable(0);
@@ -694,9 +692,9 @@ public static class InstructionConverter
         var pushLow = new Ir6502.PushStackValue(currentAddressLowBit);
         var initialCall = new Ir6502.CallFunction(new Ir6502.FunctionAddress(instruction.TargetAddress.Value, false));
 
-        var retryStartLabelId = new Ir6502.Identifier($"jsr_redirect_check_{instruction.CPUAddress:X4}");
-        var retryFailLabelId = new Ir6502.Identifier($"jsr_redirect_fail_{instruction.CPUAddress:X4}");
-        var retryFinishedLabelId = new Ir6502.Identifier($"jsr_redirect_finished_{instruction.CPUAddress:X4}");
+        var retryStartLabelId = new Ir6502.Identifier($"jsr_redirect_check_{instruction.Address:X4}");
+        var retryFailLabelId = new Ir6502.Identifier($"jsr_redirect_fail_{instruction.Address:X4}");
+        var retryFinishedLabelId = new Ir6502.Identifier($"jsr_redirect_finished_{instruction.Address:X4}");
 
         var retryStart = new Ir6502.Label(retryStartLabelId);
         var popLow = new Ir6502.PopStackValue(lowByteVariable);
@@ -735,7 +733,7 @@ public static class InstructionConverter
 
         // RTS usually adds 1 to the PC, so we need to do the same here. However, RTI does *NOT*
         // add one, and therefore we need to keep the same value in that case.
-        var addFinishedId = new Ir6502.Identifier($"add_finished_{instruction.CPUAddress:x4}");
+        var addFinishedId = new Ir6502.Identifier($"add_finished_{instruction.Address:x4}");
         var rtiCompare = new Ir6502.Binary(
             Ir6502.BinaryOperator.Equals,
             new Ir6502.Constant(0),
@@ -770,7 +768,7 @@ public static class InstructionConverter
     /// <summary>
     /// Load A
     /// </summary>
-    private static Ir6502.Instruction[] ConvertLda(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertLda(RawInstruction instruction)
     {
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
         var operand = ParseAddress(instruction);
@@ -786,7 +784,7 @@ public static class InstructionConverter
     /// <summary>
     /// Load X
     /// </summary>
-    private static Ir6502.Instruction[] ConvertLdx(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertLdx(RawInstruction instruction)
     {
         var xIndex = new Ir6502.Register(Ir6502.RegisterName.XIndex);
         var operand = ParseAddress(instruction);
@@ -802,7 +800,7 @@ public static class InstructionConverter
     /// <summary>
     /// Load Y
     /// </summary>
-    private static Ir6502.Instruction[] ConvertLdy(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertLdy(RawInstruction instruction)
     {
         var yIndex = new Ir6502.Register(Ir6502.RegisterName.YIndex);
         var operand = ParseAddress(instruction);
@@ -818,7 +816,7 @@ public static class InstructionConverter
     /// <summary>
     /// Logical shift right
     /// </summary>
-    private static Ir6502.Instruction[] ConvertLsr(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertLsr(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var tempVariable = new Ir6502.Variable(0);
@@ -861,7 +859,7 @@ public static class InstructionConverter
     /// <summary>
     /// Bitwise Or
     /// </summary>
-    private static Ir6502.Instruction[] ConvertOra(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertOra(RawInstruction instruction)
     {
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
         var operand = ParseAddress(instruction);
@@ -932,7 +930,7 @@ public static class InstructionConverter
     /// <summary>
     /// Rotate left
     /// </summary>
-    private static Ir6502.Instruction[] ConvertRol(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertRol(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var oldCarry = new Ir6502.Variable(0);
@@ -980,7 +978,7 @@ public static class InstructionConverter
     /// <summary>
     /// Rotate right
     /// </summary>
-    private static Ir6502.Instruction[] ConvertRor(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertRor(RawInstruction instruction)
     {
         var operand = ParseAddress(instruction);
         var oldCarry = new Ir6502.Variable(0);
@@ -1054,7 +1052,7 @@ public static class InstructionConverter
     /// <summary>
     /// Subtract with carry
     /// </summary>
-    private static Ir6502.Instruction[] ConvertSbc(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertSbc(RawInstruction instruction)
     {
         // NOTE: this does not implement the decimal flag logic
         var accumulator = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
@@ -1190,7 +1188,7 @@ public static class InstructionConverter
     /// <summary>
     /// Store A
     /// </summary>
-    private static Ir6502.Instruction[] ConvertSta(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertSta(RawInstruction instruction)
     {
         var register = new Ir6502.Register(Ir6502.RegisterName.Accumulator);
         var operand = ParseAddress(instruction);
@@ -1202,7 +1200,7 @@ public static class InstructionConverter
     /// <summary>
     /// Store X
     /// </summary>
-    private static Ir6502.Instruction[] ConvertStx(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertStx(RawInstruction instruction)
     {
         var register = new Ir6502.Register(Ir6502.RegisterName.XIndex);
         var operand = ParseAddress(instruction);
@@ -1214,7 +1212,7 @@ public static class InstructionConverter
     /// <summary>
     /// Store Y
     /// </summary>
-    private static Ir6502.Instruction[] ConvertSty(DisassembledInstruction instruction)
+    private static Ir6502.Instruction[] ConvertSty(RawInstruction instruction)
     {
         var register = new Ir6502.Register(Ir6502.RegisterName.YIndex);
         var operand = ParseAddress(instruction);
@@ -1315,67 +1313,65 @@ public static class InstructionConverter
         return [copy, zero, checkNegative, setNegative];
     }
 
-    private static Ir6502.Value ParseAddress(DisassembledInstruction instruction)
+    private static Ir6502.Value ParseAddress(RawInstruction instruction)
     {
-        switch (instruction.Info.AddressingMode)
+        switch (instruction.AddressingMode)
         {
             case AddressingMode.Accumulator:
                 return new Ir6502.Register(Ir6502.RegisterName.Accumulator);
 
             case AddressingMode.Immediate:
-                return new Ir6502.Constant(instruction.Operands[0]);
+                return new Ir6502.Constant(instruction.Operand1!.Value);
 
             case AddressingMode.ZeroPage:
-                return new Ir6502.Memory(instruction.Operands[0], null, true);
+                return new Ir6502.Memory(instruction.Operand1!.Value, null, true);
 
             case AddressingMode.ZeroPageX:
-                return new Ir6502.Memory(instruction.Operands[0], Ir6502.RegisterName.XIndex, true);
+                return new Ir6502.Memory(instruction.Operand1!.Value, Ir6502.RegisterName.XIndex, true);
 
             case AddressingMode.ZeroPageY:
-                return new Ir6502.Memory(instruction.Operands[0], Ir6502.RegisterName.YIndex, true);
+                return new Ir6502.Memory(instruction.Operand1!.Value, Ir6502.RegisterName.YIndex, true);
 
             case AddressingMode.Absolute:
             {
-                var fullAddress = (ushort)((instruction.Operands[1] << 8) | instruction.Operands[0]);
+                var fullAddress = (ushort)((instruction.Operand2!.Value << 8) | instruction.Operand1!.Value);
                 return new Ir6502.Memory(fullAddress, null, false);
             }
 
             case AddressingMode.AbsoluteX:
             {
-                var fullAddress = (ushort)((instruction.Operands[1] << 8) | instruction.Operands[0]);
+                var fullAddress = (ushort)((instruction.Operand2!.Value << 8) | instruction.Operand1!.Value);
                 return new Ir6502.Memory(fullAddress, Ir6502.RegisterName.XIndex, false);
             }
 
             case AddressingMode.AbsoluteY:
             {
-                var fullAddress = (ushort)((instruction.Operands[1] << 8) | instruction.Operands[0]);
+                var fullAddress = (ushort)((instruction.Operand2!.Value << 8) | instruction.Operand1!.Value);
                 return new Ir6502.Memory(fullAddress, Ir6502.RegisterName.YIndex, false);
             }
 
             case AddressingMode.IndexedIndirect:
-                return new Ir6502.IndirectMemory(instruction.Operands[0], true, false);
+                return new Ir6502.IndirectMemory(instruction.Operand1!.Value, true, false);
 
             case AddressingMode.IndirectIndexed:
-                return new Ir6502.IndirectMemory(instruction.Operands[0], false, true);
+                return new Ir6502.IndirectMemory(instruction.Operand1!.Value, false, true);
 
             default:
-                throw new NotSupportedException(instruction.Info.AddressingMode.ToString());
+                throw new NotSupportedException(instruction.AddressingMode.ToString());
         }
     }
 
-    private static Ir6502.Identifier GetTargetLabel(DisassembledInstruction instruction, Context context)
+    private static Ir6502.Identifier GetTargetLabel(RawInstruction instruction, IReadOnlySet<ushort> jumpTargets)
     {
-        if (instruction.TargetAddress == null ||
-            !context.Labels.TryGetValue(instruction.TargetAddress.Value, out var label))
+        if (instruction.TargetAddress == null || !jumpTargets.Contains(instruction.TargetAddress.Value))
         {
-            var message =
-                $"{instruction.Info.Mnemonic} instruction targeting address '{instruction.TargetAddress:X4}' " +
-                $"but that address has no known label";
+            var message = $"{instruction.Mnemonic} instruction targeting address '{instruction.TargetAddress:X4}' " +
+                          $"but that address has no known label";
 
             throw new InvalidOperationException(message);
         }
 
-        return new Ir6502.Identifier(label);
+        return new Ir6502.Identifier(LabelForAddress(instruction.TargetAddress.Value));
     }
 
     /// <summary>
@@ -1411,4 +1407,6 @@ public static class InstructionConverter
             new Ir6502.Constant(0),
             new Ir6502.Flag(Ir6502.FlagName.Zero));
     }
+
+    private static string LabelForAddress(ushort address) => $"inst_{address:X4}";
 }

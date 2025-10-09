@@ -34,7 +34,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Add setup and target instructions around the jump
         var allInstructions = new List<Ir6502.Instruction>
@@ -114,7 +114,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -168,7 +168,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -229,7 +229,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -273,7 +273,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -322,7 +322,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -363,7 +363,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         var allInstructions = new List<Ir6502.Instruction>
         {
@@ -405,7 +405,7 @@ public class JmpTests
         var context = new InstructionConverter.Context(
             labels);
 
-        var nesIrInstructions = InstructionConverter.Convert(instruction, context);
+        var nesIrInstructions = InstructionConverter.Convert(instruction.ToRawInstruction(), new HashSet<ushort>());
 
         // Test with all flags set to different states
         foreach (bool carryState in new[] { true, false })

@@ -1,8 +1,7 @@
-using Dotnet6502.Common;
 using Dotnet6502.Common.Compilation;
+using Dotnet6502.Common.Decompilation;
 using Dotnet6502.Common.Hardware;
 using NESDecompiler.Core.CPU;
-using NESDecompiler.Core.Disassembly;
 
 namespace Dotnet6502.ComprehensiveTestRunner;
 
@@ -33,13 +32,7 @@ public class TestJitCompiler : IJitCompiler
 
     public void AddMethod(ushort address, IReadOnlyList<Ir6502.Instruction> instructions)
     {
-        var nop = new DisassembledInstruction
-        {
-            Info = InstructionSet.GetInstruction(0xEA),
-            CPUAddress = address,
-            Bytes = [0xEA]
-        };
-
+        var nop = new RawInstruction(address, "NOP", AddressingMode.Implied, null, null, null, false, 2);
         var convertedInstructions = new ConvertedInstruction(nop, instructions);
         var method = ExecutableMethodGenerator.Generate($"test_0x{address:X4}", [convertedInstructions], CustomGenerators);
         Methods.Add(address, method);

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Dotnet6502.Common;
 using Dotnet6502.Common.Compilation;
+using Dotnet6502.Common.Decompilation;
 using NESDecompiler.Core.CPU;
 using NESDecompiler.Core.Disassembly;
 
@@ -101,16 +102,19 @@ public static class TestRunner
 
             var bytes = testCase.Name.Split(' ').Select(x => Convert.ToByte(x, 16)).ToArray();
             var instructionInfo = InstructionSet.GetInstruction(bytes[0]);
-            var disassembledInstruction = new DisassembledInstruction
-            {
-                Info = instructionInfo,
-                Bytes = bytes,
-            };
+            var rawInstruction = new RawInstruction(
+                0,
+                instructionInfo.Mnemonic,
+                instructionInfo.AddressingMode,
+                instructionInfo.Size > 1 ? bytes[1] : null,
+                instructionInfo.Size > 2 ? bytes[2] : null,
+                null,
+                instructionInfo.Type == InstructionType.Branch,
+                instructionInfo.Cycles);;
 
             try
             {
-                var context = new InstructionConverter.Context(new Dictionary<ushort, string>());
-                var irInstructions = InstructionConverter.Convert(disassembledInstruction, context);
+                var irInstructions = InstructionConverter.Convert(rawInstruction, new HashSet<ushort>());
 
                 jit.AddMethod(testCase.Initial.Pc, irInstructions);
                 jit.RunMethod(testCase.Initial.Pc);

@@ -1,4 +1,4 @@
-using NESDecompiler.Core.Disassembly;
+using Dotnet6502.Common.Decompilation;
 
 namespace Dotnet6502.Common.Compilation;
 
@@ -7,5 +7,5 @@ namespace Dotnet6502.Common.Compilation;
 /// Ir6502 intermediary representation instructions
 /// </summary>
 public record ConvertedInstruction(
-    DisassembledInstruction OriginalInstruction,
+    RawInstruction OriginalInstruction,
     IReadOnlyList<Ir6502.Instruction> Ir6502Instructions);
